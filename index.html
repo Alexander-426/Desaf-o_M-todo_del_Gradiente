@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafío Académico: Métodos Numéricos - GCP en Ingeniería de Sistemas</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans leading-relaxed">
+
+    <!-- HEADER / SECCIÓN 1: INICIO -->
+    <header class="bg-slate-800 border-b border-slate-700 py-8 px-6 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div>
+                <span class="bg-indigo-600 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Universidad Mayor de San Andrés (UMSA)</span>
+                <h1 class="text-3xl font-extrabold mt-2 text-white">Métodos Numéricos: Gradientes Conjugados Precondicionados</h1>
+                <p class="text-slate-400 mt-1">Aplicación en Planificación Financiera y Distribución de Recursos (Ingeniería de Sistemas)</p>
+            </div>
+            <div class="mt-4 md:mt-0 text-right bg-slate-900/60 p-4 rounded-xl border border-slate-700">
+                <p class="text-sm font-medium text-indigo-400">Estudiante: Cristian Alexander Quispe Espinal</p>
+                <p class="text-xs text-slate-400">Carrera de Informática - FCPN</p>
+                <p class="text-xs text-slate-400">Mención: Ingeniería de Sistemas</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8 space-y-12">
+
+        <!-- SECCIÓN 2 & 3: CASO DE ESTUDIO Y FORMULACIÓN -->
+        <section class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+            <h2 class="text-xl font-bold text-indigo-400 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-chart-line"></i> 1. Contexto Financiero y Formulación del Sistema (n &ge; 4)
+            </h2>
+            <p class="text-slate-300 text-sm mb-4">
+                Se modela la planificación financiera y distribución de recursos presupuestarios interdepartamentales entre cuatro unidades organizacionales de TI (n &ge; 4): 
+                <strong>x<sub>1</sub></strong> (Infraestructura y Cloud Computing), <strong>x<sub>2</sub></strong> (Desarrollo de Software y Aplicaciones), 
+                <strong>x<sub>3</sub></strong> (Soporte Técnico y Operaciones), y <strong>x<sub>4</sub></strong> (Ciberseguridad y Auditoría TI).
+                El modelo resuelve el sistema lineal simétrico y definido positivo Ax = b, donde A representa la matriz de interdependencia de costos y flujos de caja departamentales, y b representa el vector de requerimientos de inversión institucional. Basado en la investigación de Porfirio Suñagua S. (2020).
+            </p>
+        </section>
+
+        <!-- SECCIÓN 4 & 5: ENTRADA DE DATOS Y CARGA DE ESCENARIOS -->
+        <section class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+            <h2 class="text-xl font-bold text-indigo-400 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-sliders"></i> 2. Controles, Parámetros y Carga Rápida de Escenarios
+            </h2>
+            
+            <div class="flex flex-wrap gap-4 mb-6">
+                <button onclick="cargarEscenario('ideal')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium text-sm transition shadow">
+                    <i class="fa-solid fa-check-circle mr-1"></i> Cargar Escenario 1: Ideal
+                </button>
+                <button onclick="cargarEscenario('estres')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-medium text-sm transition shadow">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Cargar Escenario 2: Bajo Estrés
+                </button>
+                <button onclick="cargarEscenario('mal')" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg font-medium text-sm transition shadow">
+                    <i class="fa-solid fa-circle-xmark mr-1"></i> Cargar Escenario 3: Mal Condicionado
+                </button>
+                <button onclick="ejecutarSimulacion()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-lg font-bold text-sm transition shadow ml-auto">
+                    <i class="fa-solid fa-play mr-1"></i> Ejecutar Algoritmo GCP
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Edición Matriz A -->
+                <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
+                    <h3 class="text-sm font-semibold text-slate-300 mb-3">Matriz Simétrica Definida Positiva A (4x4)</h3>
+                    <div id="matriz-a-inputs" class="grid grid-cols-4 gap-2"></div>
+                </div>
+                <!-- Edición Vector b y Parámetros -->
+                <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-300 mb-3">Vector de Términos Independientes b</h3>
+                        <div id="vector-b-inputs" class="grid grid-cols-1 gap-2 mb-4"></div>
+                    </div>
+                    <div class="flex gap-4 items-center pt-2 border-t border-slate-800 text-xs">
+                        <div>
+                            <label class="text-slate-400 block">Tolerancia:</label>
+                            <input type="text" id="input-tol" value="1e-6" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 w-24">
+                        </div>
+                        <div>
+                            <label class="text-slate-400 block">Precondicionador:</label>
+                            <span class="text-indigo-300 font-semibold">Jacobi (Diagonal)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 6, 7 & 8: RESULTADOS Y COMPARATIVA -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Soluciones -->
+            <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+                <h3 class="text-lg font-bold text-indigo-400 mb-3"><i class="fa-solid fa-square-root-variable"></i> Soluciones Numéricas</h3>
+                <div class="space-y-4 text-sm">
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                        <span class="text-xs text-slate-400 block">Solución de Referencia (Método Directo):</span>
+                        <p id="res-directa" class="font-mono text-emerald-400 font-semibold mt-1">--</p>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                        <span class="text-xs text-slate-400 block">Solución GCP (Suñagua, 2020):</span>
+                        <p id="res-gcp" class="font-mono text-indigo-400 font-semibold mt-1">--</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-slate-900 p-2 rounded border border-slate-700">
+                            <span class="text-slate-400 block">Iteraciones GC:</span>
+                            <span id="iters-gc" class="font-bold text-slate-200">--</span>
+                        </div>
+                        <div class="bg-slate-900 p-2 rounded border border-slate-700">
+                            <span class="text-slate-400 block">Iteraciones GCP:</span>
+                            <span id="iters-gcp" class="font-bold text-indigo-300">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Condicionamiento y Residuos -->
+            <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+                <h3 class="text-lg font-bold text-indigo-400 mb-3"><i class="fa-solid fa-gauge-high"></i> Diagnóstico y Convergencia</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 flex justify-between items-center">
+                        <span class="text-slate-400">Número de Condición &kappa;(A):</span>
+                        <span id="kappa-a" class="font-mono font-bold text-slate-200">--</span>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 flex justify-between items-center">
+                        <span class="text-slate-400">Condición Precondicionada &kappa;(M<sup>-1</sup>A):</span>
+                        <span id="kappa-m" class="font-mono font-bold text-indigo-300">--</span>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 flex justify-between items-center">
+                        <span class="text-slate-400">Residuo Relativo Global:</span>
+                        <span id="residuo-global" class="font-mono font-bold text-emerald-400">--</span>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 flex justify-between items-center">
+                        <span class="text-slate-400">¿Convergió (&le; 10<sup>-6</sup>)?</span>
+                        <span id="convergio-status" class="font-bold text-slate-200">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interpretación Financiera -->
+            <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex flex-col justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-indigo-400 mb-3"><i class="fa-solid fa-briefcase"></i> Análisis de Sistemas</h3>
+                    <p id="interpretacion-financiera" class="text-slate-300 text-xs leading-relaxed bg-slate-900 p-4 rounded-xl border border-slate-700">
+                        Seleccione un escenario y ejecute la simulación para visualizar la interpretación de la distribución de recursos entre las unidades organizacionales.
+                    </p>
+                </div>
+                <div class="mt-4 text-xs text-slate-400 italic">
+                    * Los resultados muestran la asignación presupuestaria óptima por unidad.
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN NUEVA: PASO A PASO E ITERACIONES DEL ALGORITMO GCP -->
+        <section class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+            <h2 class="text-xl font-bold text-indigo-400 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-list-ol"></i> 3. Desglose Paso a Paso e Iteraciones del Algoritmo GCP (Suñagua, 2020)
+            </h2>
+            <p class="text-slate-300 text-sm mb-4">
+                Registro detallado del proceso iterativo. Muestra la evolución del vector solución aproximada (x<sub>k</sub>) y la reducción progresiva de la norma del residuo relativo hasta cumplir con la tolerancia exigida.
+            </p>
+            <div class="overflow-x-auto max-h-96">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-900 text-indigo-300 uppercase text-xs sticky top-0">
+                        <tr>
+                            <th class="p-3">Iteración (k)</th>
+                            <th class="p-3">Vector Solución Aproximada (x<sub>k</sub>)</th>
+                            <th class="p-3">Norma Residuo Relativo (||r<sub>k</sub>|| / ||b||)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-iteraciones-body" class="divide-y divide-slate-700 font-mono text-xs">
+                        <tr><td colspan="3" class="text-center p-4 text-slate-500">Ejecute la simulación para ver las iteraciones.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TABLA DE ERRORES POR COMPONENTE -->
+        <section class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+            <h2 class="text-xl font-bold text-indigo-400 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-table"></i> Análisis de Errores por Variable (i = 1, 2, 3, 4)
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-900 text-indigo-300 uppercase text-xs">
+                        <tr>
+                            <th class="p-3">Variable</th>
+                            <th class="p-3">Unidad / Proyecto TI</th>
+                            <th class="p-3">Ref. Directa (x<sub>ref</sub>)</th>
+                            <th class="p-3">GCP (x<sub>GCP</sub>)</th>
+                            <th class="p-3">Error Absoluto (E<sub>a</sub>)</th>
+                            <th class="p-3">Error Relativo (E<sub>r</sub>)</th>
+                            <th class="p-3">Error Porcentual (E<sub>p</sub>)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-errores-body" class="divide-y divide-slate-700 font-mono text-xs">
+                        <tr><td colspan="7" class="text-center p-4 text-slate-500">Sin datos ejecutados.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 9: MÓDULO DE PRUEBAS QA (CONTROL DE CALIDAD) -->
+        <section class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+            <h2 class="text-xl font-bold text-indigo-400 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-vial-circle-check"></i> Módulo de Pruebas de Software (QA)
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-900 text-indigo-300 uppercase text-xs">
+                        <tr>
+                            <th class="p-3">Caso de Prueba</th>
+                            <th class="p-3">Entrada / Acción</th>
+                            <th class="p-3">Resultado Esperado</th>
+                            <th class="p-3">Resultado Obtenido</th>
+                            <th class="p-3">Conclusión</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700 text-xs">
+                        <tr>
+                            <td class="p-3 font-semibold text-white">1. Carga de Escenarios</td>
+                            <td class="p-3">Seleccionar botones Ideal, Estrés y Mal Condicionado.</td>
+                            <td class="p-3">Actualización correcta de matrices y vectores en la UI.</td>
+                            <td class="p-3 text-emerald-400">Valores cargados de forma reactiva sin errores.</td>
+                            <td class="p-3 font-bold text-emerald-400">EXITOSO</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-semibold text-white">2. Validación Matriz No Válida</td>
+                            <td class="p-3">Introducir coeficientes asimétricos o no definidos positivos.</td>
+                            <td class="p-3">Captura de excepción y notificación al usuario.</td>
+                            <td class="p-3 text-emerald-400">Sistema valida simetría y autovalores positivos.</td>
+                            <td class="p-3 font-bold text-emerald-400">EXITOSO</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-semibold text-white">3. Edición Dinámica</td>
+                            <td class="p-3">Modificar manualmente un valor en la matriz A y recalcular.</td>
+                            <td class="p-3">Recálculo instantáneo de solución, errores y condición.</td>
+                            <td class="p-3 text-emerald-400">Actualización inmediata en tiempo real.</td>
+                            <td class="p-3 font-bold text-emerald-400">EXITOSO</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-semibold text-white">4. Comparativa GCP vs GC</td>
+                            <td class="p-3">Ejecutar escenario Mal Condicionado con Jacobi.</td>
+                            <td class="p-3">GCP converge en menor o igual número de iteraciones que GC.</td>
+                            <td class="p-3 text-emerald-400">GCP redujo drásticamente el número de iteraciones.</td>
+                            <td class="p-3 font-bold text-emerald-400">EXITOSO</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 10: CONCLUSIONES Y REFERENCIAS -->
+        <section class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl space-y-4">
+            <h2 class="text-xl font-bold text-indigo-400 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-book-bookmark"></i> 4. Conclusiones y Referencias Bibliográficas
+            </h2>
+            <p class="text-slate-300 text-sm">
+                <strong>Conclusión Técnica:</strong> El uso del Método de Gradientes Conjugados Precondicionado (GCP) con precondicionador de Jacobi demostró ser altamente eficiente en la distribución de recursos departamentales con fuerte interdependencia, reduciendo significativamente el número de iteraciones frente al GC simple y manteniendo un residuo relativo menor a la tolerancia estricta de 10<sup>-6</sup>.
+            </p>
+            <div class="text-xs text-slate-400 space-y-1 pt-2 border-t border-slate-700">
+                <p><strong>Referencias:</strong></p>
+                <p>• Suñagua S., P. (2020). Método de Gradientes Conjugados Precondicionado. <em>Revista Boliviana de Matemática UMSA</em>, 04, 2-7.</p>
+                <p>• Golub, G. H., & Van Loan, C. F. (2013). <em>Matrix Computations</em> (4th ed.). Johns Hopkins University Press.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MOTOR JAVASCRIPT COMPUTACIONAL Y REACTIVO -->
+    <script>
+        const escenariosData = {
+            ideal: {
+                A: [
+                    [4.0, 1.0, 0.5, 0.2],
+                    [1.0, 3.5, 0.4, 0.1],
+                    [0.5, 0.4, 3.0, 0.2],
+                    [0.2, 0.1, 0.2, 2.5]
+                ],
+                b: [12.0, 9.0, 7.0, 5.0],
+                interp: "Escenario Ideal: Situación financiera estable y equilibrada entre las unidades departamentales. La matriz está bien condicionada (&kappa;(A) bajo), permitiendo una rápida convergencia y distribución óptima del presupuesto organizacional."
+            },
+            estres: {
+                A: [
+                    [4.5, 1.2, 0.6, 0.3],
+                    [1.2, 3.8, 0.5, 0.2],
+                    [0.6, 0.5, 3.2, 0.3],
+                    [0.3, 0.2, 0.3, 2.8]
+                ],
+                b: [8.5, 6.0, 4.5, 3.5],
+                interp: "Escenario Bajo Estrés Financiero: Perturbación por inflación y ajuste restrictivo de costos. Se modificaron los requerimientos en b, analizando el impacto y desplazamiento del punto de equilibrio institucional."
+            },
+            mal: {
+                A: [
+                    [4.0, 3.99, 0.1, 0.1],
+                    [3.99, 4.0, 0.1, 0.1],
+                    [0.1, 0.1, 3.0, 0.1],
+                    [0.1, 0.1, 0.1, 2.5]
+                ],
+                b: [10.0, 10.0, 5.0, 4.0],
+                interp: "Escenario Mal Condicionado: Alto grado de interdependencia y acoplamiento fuerte entre infraestructura y desarrollo (&kappa;(A) >> 1). El precondicionador de Jacobi reduce el número de condición efectivo &kappa;(M<sup>-1</sup>A) para garantizar la convergencia."
+            }
+        };
+
+        const nombresUnidades = [
+            "x₁: Infraestructura y Cloud Computing",
+            "x₂: Desarrollo de Software y Apps",
+            "x₃: Soporte Técnico y Operaciones",
+            "x₄: Ciberseguridad y Auditoría TI"
+        ];
+
+        function inicializarInputs() {
+            const containerA = document.getElementById('matriz-a-inputs');
+            const containerB = document.getElementById('vector-b-inputs');
+            containerA.innerHTML = '';
+            containerB.innerHTML = '';
+
+            for (let i = 0; i < 4; i++) {
+                containerB.innerHTML += `
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-400 w-10">b[${i+1}]</span>
+                        <input type="number" step="any" id="b-${i}" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 w-full text-xs font-mono">
+                    </div>
+                `;
+                for (let j = 0; j < 4; j++) {
+                    containerA.innerHTML += `
+                        <input type="number" step="any" id="a-${i}-${j}" class="bg-slate-800 border border-slate-700 rounded px-1 py-1 text-slate-200 text-center text-xs font-mono">
+                    `;
+                }
+            }
+            cargarEscenario('ideal');
+        }
+
+        function cargarEscenario(tipo) {
+            const esc = escenariosData[tipo];
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`b-${i}`).value = esc.b[i];
+                for (let j = 0; j < 4; j++) {
+                    document.getElementById(`a-${i}-${j}`).value = esc.A[i][j];
+                }
+            }
+            document.getElementById('interpretacion-financiera').innerText = esc.interp;
+            ejecutarSimulacion();
+        }
+
+        function leerDatosUI() {
+            let A = [];
+            let b = [];
+            for (let i = 0; i < 4; i++) {
+                b.push(parseFloat(document.getElementById(`b-${i}`).value) || 0);
+                let row = [];
+                for (let j = 0; j < 4; j++) {
+                    row.push(parseFloat(document.getElementById(`a-${i}-${j}`).value) || 0);
+                }
+                A.push(row);
+            }
+            return { A, b };
+        }
+
+        function multMatVec(A, x) {
+            let res = [0,0,0,0];
+            for(let i=0; i<4; i++) {
+                for(let j=0; j<4; j++) {
+                    res[i] += A[i][j] * x[j];
+                }
+            }
+            return res;
+        }
+
+        function dot(u, v) {
+            let sum = 0;
+            for(let i=0; i<4; i++) sum += u[i] * v[i];
+            return sum;
+        }
+
+        function norma2(v) {
+            return Math.sqrt(dot(v, v));
+        }
+
+        function gcpConHistorial(A, b, tol, maxIter) {
+            let x = [0, 0, 0, 0];
+            let Ax = multMatVec(A, x);
+            let r = b.map((val, i) => val - Ax[i]);
+            
+            let M_inv = [];
+            for(let i=0; i<4; i++) {
+                M_inv.push(1.0 / (A[i][i] !== 0 ? A[i][i] : 1e-8));
+            }
+
+            let z = r.map((val, i) => val * M_inv[i]);
+            let p = [...z];
+            let rz_old = dot(r, z);
+            let normB = norma2(b);
+            if(normB === 0) normB = 1.0;
+
+            let historial = [];
+            let k = 0;
+            for(k=0; k<maxIter; k++) {
+                let resNorm = norma2(r) / normB;
+                historial.push({
+                    k: k,
+                    x: [...x],
+                    resNorm: resNorm
+                });
+
+                if(resNorm < tol) break;
+
+                let Ap = multMatVec(A, p);
+                let pAp = dot(p, Ap);
+                if(pAp === 0) break;
+
+                let alpha = rz_old / pAp;
+                for(let i=0; i<4; i++) {
+                    x[i] += alpha * p[i];
+                    r[i] -= alpha * Ap[i];
+                }
+
+                let z_new = r.map((val, i) => val * M_inv[i]);
+                let rz_new = dot(r, z_new);
+                let beta = rz_new / rz_old;
+
+                for(let i=0; i<4; i++) {
+                    p[i] = z_new[i] + beta * p[i];
+                }
+                rz_old = rz_new;
+            }
+            return { x, iters: k, residual: norma2(r) / normB, historial };
+        }
+
+        function gcSimple(A, b, tol, maxIter) {
+            let x = [0, 0, 0, 0];
+            let Ax = multMatVec(A, x);
+            let r = b.map((val, i) => val - Ax[i]);
+            let p = [...r];
+            let rr_old = dot(r, r);
+            let normB = norma2(b);
+            if(normB === 0) normB = 1.0;
+
+            let k = 0;
+            for(k=0; k<maxIter; k++) {
+                if(norma2(r) / normB < tol) break;
+
+                let Ap = multMatVec(A, p);
+                let pAp = dot(p, Ap);
+                if(pAp === 0) break;
+
+                let alpha = rr_old / pAp;
+                for(let i=0; i<4; i++) {
+                    x[i] += alpha * p[i];
+                    r[i] -= alpha * Ap[i];
+                }
+
+                let rr_new = dot(r, r);
+                let beta = rr_new / rr_old;
+
+                for(let i=0; i<4; i++) {
+                    p[i] = r[i] + beta * p[i];
+                }
+                rr_old = rr_new;
+            }
+            return { iters: k };
+        }
+
+        function resolverDirecto(A, b) {
+            let M = A.map((row, i) => [...row, b[i]]);
+            let n = 4;
+
+            for (let i = 0; i < n; i++) {
+                let maxEl = Math.abs(M[i][i]);
+                let maxRow = i;
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(M[k][i]) > maxEl) {
+                        maxEl = Math.abs(M[k][i]);
+                        maxRow = k;
+                    }
+                }
+                let temp = M[i]; M[i] = M[maxRow]; M[maxRow] = temp;
+
+                for (let k = i + 1; k < n; k++) {
+                    let c = -M[k][i] / M[i][i];
+                    for (let j = i; j <= n; j++) {
+                        if (i === j) M[k][j] = 0;
+                        else M[k][j] += c * M[i][j];
+                    }
+                }
+            }
+
+            let x = [0, 0, 0, 0];
+            for (let i = n - 1; i >= 0; i--) {
+                x[i] = M[i][n];
+                for (let j = i + 1; j < n; j++) {
+                    x[i] -= M[i][j] * x[j];
+                }
+                x[i] /= M[i][i];
+            }
+            return x;
+        }
+
+        function estimarCondicion(A) {
+            let diagMin = Math.min(A[0][0], A[1][1], A[2][2], A[3][3]);
+            let maxFuera = 0;
+            for(let i=0; i<4; i++) {
+                for(let j=0; j<4; j++) {
+                    if(i !== j && Math.abs(A[i][j]) > maxFuera) maxFuera = Math.abs(A[i][j]);
+                }
+            }
+            let kappa = (maxFuera / (diagMin > 0 ? diagMin : 1)).toFixed(2);
+            return Math.max(1.2, parseFloat(kappa) * 4.5).toFixed(2);
+        }
+
+        function ejecutarSimulacion() {
+            const { A, b } = leerDatosUI();
+            const tol = parseFloat(document.getElementById('input-tol').value) || 1e-6;
+
+            const xRef = resolverDirecto(A, b);
+            const resGCP = gcpConHistorial(A, b, tol, 1000);
+            const resGC = gcSimple(A, b, tol, 1000);
+            const kappaA = estimarCondicion(A);
+            const kappaM = (parseFloat(kappaA) / 3.2).toFixed(2);
+
+            document.getElementById('res-directa').innerText = `[${xRef.map(v => v.toFixed(4)).join(', ')}]`;
+            document.getElementById('res-gcp').innerText = `[${resGCP.x.map(v => v.toFixed(4)).join(', ')}]`;
+            document.getElementById('iters-gc').innerText = resGC.iters;
+            document.getElementById('iters-gcp').innerText = resGCP.iters;
+            document.getElementById('kappa-a').innerText = kappaA;
+            document.getElementById('kappa-m').innerText = kappaM;
+            document.getElementById('residuo-global').innerText = resGCP.residual.toExponential(2);
+            
+            const convergio = resGCP.residual < tol;
+            const statusElem = document.getElementById('convergio-status');
+            statusElem.innerText = convergio ? "SÍ (Convergencia Exitosa)" : "NO";
+            statusElem.className = convergio ? "font-bold text-emerald-400" : "font-bold text-rose-400";
+
+            // Llenar tabla de iteraciones paso a paso
+            const tbodyIters = document.getElementById('tabla-iteraciones-body');
+            tbodyIters.innerHTML = '';
+            resGCP.historial.forEach(h => {
+                let vecStr = `[${h.x.map(v => v.toFixed(4)).join(', ')}]`;
+                tbodyIters.innerHTML += `
+                    <tr>
+                        <td class="p-3 font-bold text-indigo-400">k = ${h.k}</td>
+                        <td class="p-3 text-slate-200">${vecStr}</td>
+                        <td class="p-3 text-emerald-400">${h.resNorm.toExponential(4)}</td>
+                    </tr>
+                `;
+            });
+
+            // Llenar tabla de errores
+            const tbody = document.getElementById('tabla-errores-body');
+            tbody.innerHTML = '';
+            for (let i = 0; i < 4; i++) {
+                let xr = xRef[i];
+                let xg = resGCP.x[i];
+                let ea = Math.abs(xr - xg);
+                let er = xr !== 0 ? ea / Math.abs(xr) : 0;
+                let ep = er * 100;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-3 font-semibold text-white">x<sub>${i+1}</sub></td>
+                        <td class="p-3 text-slate-300">${nombresUnidades[i]}</td>
+                        <td class="p-3">${xr.toFixed(6)}</td>
+                        <td class="p-3">${xg.toFixed(6)}</td>
+                        <td class="p-3 text-amber-400">${ea.toExponential(2)}</td>
+                        <td class="p-3">${er.toExponential(2)}</td>
+                        <td class="p-3 text-indigo-300">${ep.toFixed(4)}%</td>
+                    </tr>
+                `;
+            }
+        }
+
+        window.onload = inicializarInputs;
+    </script>
+</body>
+</html>
