@@ -17,7 +17,7 @@ Toda la fundamentación teórica, el modelado matemático, la solución de refer
 
 ## 2. Instrucciones de uso
 Para hacer uso de la página simplemente clone el repositorio e ingrese al archivo index.html, se abrirá la página y podrá ver tres ejemplos de escenarios, además de que podrá modificar los datos del ejercicio y para resolverlos debe presionar en el botón "Ejecutar Algoritmo GCP", el ejercicio se resolverá de forma automática y podrá ver los detalles del mismo en la misma página.
-De igual forma puede ingresar a la página mediante este link: 
+De igual forma puede ingresar a la página mediante este link: https://alexander-426.github.io/Desaf-o_M-todo_del_Gradiente/ 
 
 ---
 
